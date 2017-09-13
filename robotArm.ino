@@ -1,10 +1,7 @@
 #include <Servo.h>
+#include <EEPROM.h>
 
-Servo rotationServo;
-Servo shoulderServo;
-Servo elbowServo;
-Servo handServo;
-
+// Pre-compile Constants
 #define ST_1_DECODE_COMMAND 1
 #define ST_2_DECODE_MOTOR 2
 #define ST_3_DECODE_ANGLE 3
@@ -17,12 +14,35 @@ Servo handServo;
 #define ERROR_UNKNOWN_CMD 1
 #define ERROR_UNKNOWN_MOTOR 2
 
+// Custom Type Definitions
+typedef struct _range {
+  int min;
+  int max;
+} Range;
+
+typedef struct _motorRanges {
+  Range rotation;
+  Range shoulder;
+  Range elbow;
+  Range hand;
+} MotorRanges;
+
+// Global State
+Servo rotationServo;
+Servo shoulderServo;
+Servo elbowServo;
+Servo handServo;
+bool motorsAreEngaged = false;
+MotorRanges motorRanges = {
+  .rotation = { .min = 0, .max = 180 },
+  .shoulder = { .min = 0, .max = 180 },
+  .elbow = { .min = 0, .max = 180 },
+  .hand = { .min = 0, .max = 180 },
+};
+
 void setup() {
   // Attach the servos to the I/O port
-  rotationServo.attach(5);
-  shoulderServo.attach(6);
-  elbowServo.attach(9);
-  handServo.attach(10);
+  engage();
 
   // Open serial communications with the host
   Serial.begin(9600);
@@ -54,6 +74,10 @@ void reportError(int errorCode, char * errorMessage) {
   Serial.print(errorCode);
   Serial.print("] ");
   Serial.println(errorMessage);
+}
+
+void restoreState() {
+  
 }
 
 char * getNextInstruction() {
@@ -110,35 +134,171 @@ bool executeInstruction(int argc, char ** argv) {
     return false;
   }
 
-  if (strcmp(argv[0], "MOVE") == 0) {
-    return move(argc, argv);
+  if (strcmp(argv[0], "SET_ANGLE") == 0) {
+    return setMotorAngle(argc, argv);
+  } else if (strcmp(argv[0], "SET_PERC") == 0) {
+    return setMotorPercentage(argc, argv);
+  } else if (strcmp(argv[0], "ENGAGE") == 0) {
+    return engage();
+  } else if (strcmp(argv[0], "DISENGAGE") == 0) {
+    return disengage();
+  } else if (strcmp(argv[0], "MAX_ANGLE") == 0) {
+    return setMaxAngle(argc, argv);
+  } else if (strcmp(argv[0], "MIN_ANGLE") == 0) {
+    return setMinAngle(argc, argv);
   }
 
   reportError(ERROR_UNKNOWN_CMD, "Unknown command");
   return false;
 }
 
-bool move(int argc, char ** argv) {
+bool setMotorAngle(int argc, char ** argv) {
   if (argc != 3) {
-    reportError(ERROR_MALFORMED, "MOVE expected 2 arguments");
+    reportError(ERROR_MALFORMED, "SET_ANGLE expected 2 arguments");
     return false;
   }
 
+  bool foundMotor = false;
+  int min, max;
+  Servo targetMotor;
   if (strcmp(argv[1], "ROTATION") == 0) {
-    int targetPosition = atoi(argv[2]);
-    rotationServo.write(targetPosition);
+    foundMotor = true;
+    min = motorRanges.rotation.min;
+    max = motorRanges.rotation.max;
+    targetMotor = rotationServo;
+  } else if (strcmp(argv[1], "SHOULDER") == 0) {
+    foundMotor = true;
+    min = motorRanges.shoulder.min;
+    max = motorRanges.shoulder.max;
+    targetMotor = shoulderServo;
+  } else if (strcmp(argv[1], "ELBOW") == 0) {
+    foundMotor = true;
+    min = motorRanges.elbow.min;
+    max = motorRanges.elbow.max;
+    targetMotor = elbowServo;
+  } else if (strcmp(argv[1], "HAND") == 0) {
+    foundMotor = true;
+    min = motorRanges.hand.min;
+    max = motorRanges.hand.max;
+    targetMotor = handServo;
+  }
+
+  if (foundMotor) {
+    int targetPosition = constrain(atoi(argv[2]), min, max);
+    targetMotor.write(targetPosition);
+    return true;
+  }
+
+  reportError(ERROR_UNKNOWN_MOTOR, "Unknown motor");
+  return false;
+}
+
+bool setMotorPercentage(int argc, char ** argv) {
+  if (argc != 3) {
+    reportError(ERROR_MALFORMED, "SET_PERC expected 2 arguments");
+    return false;
+  }
+
+  bool foundMotor = false;
+  int min, max;
+  Servo targetMotor;
+  if (strcmp(argv[1], "ROTATION") == 0) {
+    foundMotor = true;
+    min = motorRanges.rotation.min;
+    max = motorRanges.rotation.max;
+    targetMotor = rotationServo;
+  } else if (strcmp(argv[1], "SHOULDER") == 0) {
+    foundMotor = true;
+    min = motorRanges.shoulder.min;
+    max = motorRanges.shoulder.max;
+    targetMotor = shoulderServo;
+  } else if (strcmp(argv[1], "ELBOW") == 0) {
+    foundMotor = true;
+    min = motorRanges.elbow.min;
+    max = motorRanges.elbow.max;
+    targetMotor = elbowServo;
+  } else if (strcmp(argv[1], "HAND") == 0) {
+    foundMotor = true;
+    min = motorRanges.hand.min;
+    max = motorRanges.hand.max;
+    targetMotor = handServo;
+  }
+
+  if (foundMotor) {
+    int targetPosition = (((max - min) * atoi(argv[2])) + min) / 100;
+    targetMotor.write(targetPosition);
+    return true;
+  }
+
+  reportError(ERROR_UNKNOWN_MOTOR, "Unknown motor");
+  return false;
+}
+
+bool engage() {
+  if (!motorsAreEngaged) {
+    rotationServo.attach(5);
+    shoulderServo.attach(6);
+    elbowServo.attach(9);
+    handServo.attach(10);
+    motorsAreEngaged = true;
+  }
+  return true;
+}
+
+bool disengage() {
+  if (motorsAreEngaged) {
+    rotationServo.detach();
+    shoulderServo.detach();
+    elbowServo.detach();
+    handServo.detach();
+    motorsAreEngaged = false;
+  }
+  return true;
+}
+
+bool setMaxAngle(int argc, char ** argv) {
+  if (argc != 3) {
+    reportError(ERROR_MALFORMED, "MAX_ANGLE expected 2 arguments");
+    return false;
+  }
+
+  int max = atoi(argv[2]);
+  if (strcmp(argv[1], "ROTATION") == 0) {
+    motorRanges.rotation.max = max;
     return true;
   } else if (strcmp(argv[1], "SHOULDER") == 0) {
-    int targetPosition = atoi(argv[2]);
-    shoulderServo.write(targetPosition);
+    motorRanges.shoulder.max = max;
     return true;
   } else if (strcmp(argv[1], "ELBOW") == 0) {
-    int targetPosition = atoi(argv[2]);
-    elbowServo.write(targetPosition);
+    motorRanges.elbow.max = max;
     return true;
   } else if (strcmp(argv[1], "HAND") == 0) {
-    int targetPosition = atoi(argv[2]);
-    handServo.write(targetPosition);
+    motorRanges.hand.max = max;
+    return true;
+  }
+
+  reportError(ERROR_UNKNOWN_MOTOR, "Unknown motor");
+  return false;
+}
+
+bool setMinAngle(int argc, char ** argv) {
+  if (argc != 3) {
+    reportError(ERROR_MALFORMED, "MIN_ANGLE expected 2 arguments");
+    return false;
+  }
+
+  int min = atoi(argv[2]);
+  if (strcmp(argv[1], "ROTATION") == 0) {
+    motorRanges.rotation.min = min;
+    return true;
+  } else if (strcmp(argv[1], "SHOULDER") == 0) {
+    motorRanges.shoulder.min = min;
+    return true;
+  } else if (strcmp(argv[1], "ELBOW") == 0) {
+    motorRanges.elbow.min = min;
+    return true;
+  } else if (strcmp(argv[1], "HAND") == 0) {
+    motorRanges.hand.min = min;
     return true;
   }
 
