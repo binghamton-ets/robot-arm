@@ -66,7 +66,14 @@ void loop() {
 }
 
 void reportSuccess() {
-  Serial.println("OK");
+  Serial.println("STATUS[OK]");
+}
+
+void reportMessage(char * src, char * message) {
+  Serial.print("INFO[");
+  Serial.print(src);
+  Serial.print("] ");
+  Serial.println(message);
 }
 
 void reportError(int errorCode, char * errorMessage) {
@@ -74,10 +81,6 @@ void reportError(int errorCode, char * errorMessage) {
   Serial.print(errorCode);
   Serial.print("] ");
   Serial.println(errorMessage);
-}
-
-void restoreState() {
-  
 }
 
 char * getNextInstruction() {
@@ -146,6 +149,8 @@ bool executeInstruction(int argc, char ** argv) {
     return setMaxAngle(argc, argv);
   } else if (strcmp(argv[0], "MIN_ANGLE") == 0) {
     return setMinAngle(argc, argv);
+  } else if (strcmp(argv[0], "GET_ANGLE") == 0) {
+    return getAngle(argc, argv);
   }
 
   reportError(ERROR_UNKNOWN_CMD, "Unknown command");
@@ -185,7 +190,7 @@ bool setMotorAngle(int argc, char ** argv) {
 
   if (foundMotor) {
     int targetPosition = constrain(atoi(argv[2]), min, max);
-    targetMotor.write(targetPosition);
+    sweepMotorTo(targetMotor, targetPosition);
     return true;
   }
 
@@ -226,7 +231,7 @@ bool setMotorPercentage(int argc, char ** argv) {
 
   if (foundMotor) {
     int targetPosition = (((max - min) * atoi(argv[2])) + min) / 100;
-    targetMotor.write(targetPosition);
+    sweepMotorTo(targetMotor, targetPosition);
     return true;
   }
 
@@ -304,4 +309,48 @@ bool setMinAngle(int argc, char ** argv) {
 
   reportError(ERROR_UNKNOWN_MOTOR, "Unknown motor");
   return false;
+}
+
+bool getAngle(int argc, char ** argv) {
+  if (argc != 2) {
+    reportError(ERROR_MALFORMED, "GET_ANGLE expected 1 argument");
+    return false;
+  }
+
+  Servo targetMotor;
+  bool foundMotor = false;
+  if (strcmp(argv[1], "ROTATION") == 0) {
+    targetMotor = rotationServo;
+    foundMotor = true;
+  } else if (strcmp(argv[1], "SHOULDER") == 0) {
+    targetMotor = rotationServo;
+    foundMotor = true;
+  } else if (strcmp(argv[1], "ELBOW") == 0) {
+    targetMotor = rotationServo;
+    foundMotor = true;
+  } else if (strcmp(argv[1], "HAND") == 0) {
+    targetMotor = rotationServo;
+    foundMotor = true;
+  }
+
+  if (foundMotor) {
+    char * angle = (char *)malloc(sizeof(char) * 4);
+    itoa(targetMotor.read(), angle, 4);
+    reportMessage("GET_ANGLE", angle);
+    free(angle);
+    return true;
+  }
+
+  reportError(ERROR_UNKNOWN_MOTOR, "Unknown motor");
+  return false;
+}
+
+bool sweepMotorTo(Servo motor, int targetAngle) {
+  int initialAngle = motor.read();
+  int stepAmount = (targetAngle > initialAngle) ? 1 : -1;
+  for (int i = 0; i < abs(targetAngle - initialAngle); i++) {
+    motor.write(initialAngle + (i * stepAmount));
+    delay(5);
+  }
+  return true;
 }
