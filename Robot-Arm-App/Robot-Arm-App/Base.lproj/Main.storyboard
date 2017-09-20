@@ -86,7 +86,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="W5J-7L-Pyd" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="750" y="-320"/>
+            <point key="canvasLocation" x="749" y="-439"/>
         </scene>
         <!--Second-->
         <scene sceneID="wg7-f3-ORb">
@@ -111,27 +111,23 @@
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                             </tableView>
                             <pickerView contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="CCU-gD-e1l">
-                                <rect key="frame" x="1" y="464" width="160" height="157"/>
+                                <rect key="frame" x="1" y="464" width="413" height="157"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                             </pickerView>
-                            <pickerView contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="val-jB-9EV">
-                                <rect key="frame" x="169" y="464" width="138" height="157"/>
-                                <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
-                            </pickerView>
-                            <pickerView contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Nbi-CJ-PjD">
-                                <rect key="frame" x="315" y="464" width="99" height="157"/>
-                                <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
-                            </pickerView>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="pgZ-4E-bsb">
+                                <rect key="frame" x="157" y="614" width="102" height="56"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <state key="normal" title="Add Command"/>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                     </view>
                     <tabBarItem key="tabBarItem" title="Second" image="second" id="cPa-gy-q4n"/>
                     <connections>
-                        <outlet property="LitButton" destination="2Xe-df-YV3" id="JGR-tZ-y8X"/>
-                        <outlet property="commandsTable" destination="Lhr-QK-pby" id="nB3-hO-vjW"/>
-                        <outlet property="motorAnglePicker" destination="Nbi-CJ-PjD" id="A85-Ea-Vez"/>
-                        <outlet property="motorDirectionPicker" destination="val-jB-9EV" id="jVN-q7-Cq2"/>
-                        <outlet property="motorNamePicker" destination="CCU-gD-e1l" id="MrG-1Q-P2f"/>
+                        <outlet property="LitButton" destination="2Xe-df-YV3" id="3Sd-Nq-jFA"/>
+                        <outlet property="addCommandButton" destination="pgZ-4E-bsb" id="w3v-NI-qXL"/>
+                        <outlet property="commandPicker" destination="CCU-gD-e1l" id="pmT-pY-fht"/>
+                        <outlet property="commandsTable" destination="Lhr-QK-pby" id="Wut-2q-Pk8"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="4Nw-L8-lE0" sceneMemberID="firstResponder"/>

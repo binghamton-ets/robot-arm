@@ -52,7 +52,7 @@
 - (void) armDownButtonAction
 {
     [self setStatus:@"ARM MOVING DOWN"];
-        [self sendMessageToMotor:@"BASE" direction:@"DOWN"];
+        [self sendMessageToMotor:@"SHOULDER" direction:@"DOWN"];
 }
 //LEFT
 - (void) armLeftButtonAction

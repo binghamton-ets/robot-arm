@@ -14,7 +14,7 @@
     _motorName = name;
 }
 
-- (void) setAngle:(NSInteger)ang
+- (void) setAngle:(NSNumber*)ang
 {
     _angle = ang;
 }
@@ -29,7 +29,7 @@
     return _motorName;
 }
 
-- (NSInteger) getAngle
+- (NSNumber*) getAngle
 {
     return _angle;
 }
@@ -40,7 +40,7 @@
 }
 
 - (void) initWithMotorName: (NSString*) name
-                     angle: (NSInteger) ang
+                     angle: (NSNumber*) ang
                  direction: (NSString*) dir
 {
     [self setMotorName:name];

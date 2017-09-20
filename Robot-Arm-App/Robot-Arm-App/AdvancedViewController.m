@@ -27,43 +27,25 @@
     self.commandsTable.dataSource = self;
     self.commandsTable.delegate = self;
     
-    self.motorNamePicker.dataSource = self;
-    self.motorAnglePicker.dataSource = self;
-    self.motorDirectionPicker.dataSource = self;
-    
-    self.motorNamePicker.delegate = self;
-    self.motorAnglePicker.delegate = self;
-    self.motorDirectionPicker.delegate = self;
+    self.commandPicker.dataSource = self;
+    self.commandPicker.delegate = self;
     
     _commandsTable.layer.borderColor = [UIColor brownColor].CGColor;
     _commandsTable.layer.borderWidth = 2.5f;
     
     commandsArray = [[NSMutableArray alloc] init];
-    motorNamePickerArray = [[NSMutableArray alloc] initWithArray:[NSArray arrayWithObjects:@"Elbow", @"Hand", @"Base", @"Rotation", @"Shoulder", nil]];
-    directionPickerArray = [[NSMutableArray alloc] initWithArray:[NSArray arrayWithObjects:@"Up", @"Down", nil]];
+    motorNamePickerArray = [[NSMutableArray alloc] initWithArray:[NSArray arrayWithObjects:@"Elbow", @"Hand", @"Rotation", @"Shoulder", nil]];
+    directionPickerArray = [[NSMutableArray alloc] initWithArray:[NSArray   arrayWithObjects:@"FORWARD", @"BACK", @"STOP", nil]];
     anglePickerArray = [[NSMutableArray alloc] init];
     
-    for (int i = 0; i < 3; i++)
-    {
-        Command * c = [Command alloc];
-        [c setAngle:i];
-        [commandsArray addObject:c];
-    }
-    
     [_LitButton addTarget:self action:@selector(litButtonAction) forControlEvents:UIControlEventTouchDown];
+    
+    [_addCommandButton addTarget:self action:@selector(addCommandButtonAction) forControlEvents:UIControlEventTouchDown];
     
     for (NSInteger i = 1; i <= 180; i++)
     {
         [anglePickerArray addObject:[NSNumber numberWithInteger:i]];
     }
-    
-    [[commandsArray objectAtIndex:0] setMotorName:@"motor1"];
-    [[commandsArray objectAtIndex:1] setMotorName:@"motor2"];
-    [[commandsArray objectAtIndex:2] setMotorName:@"motor3"];
-    
-    [[commandsArray objectAtIndex:0] setMoveDirection:@"up"];
-    [[commandsArray objectAtIndex:1] setMoveDirection:@"right"];
-    [[commandsArray objectAtIndex:2] setMoveDirection:@"close"];
 }
 
 - (void) viewWillAppear: (BOOL)animated
@@ -74,6 +56,27 @@
 - (void) litButtonAction
 {
 //    [_commandsTable reloadData];
+}
+
+- (void) addCommandButtonAction
+{
+    NSInteger row = [_commandPicker selectedRowInComponent:0];
+    NSString * motorName = [motorNamePickerArray objectAtIndex:row];
+    
+    row = [_commandPicker selectedRowInComponent:1];
+    NSString * motorDirection = [directionPickerArray objectAtIndex:row];
+    
+    row = [_commandPicker selectedRowInComponent:2];
+    NSNumber * motorAngle = [anglePickerArray objectAtIndex:row];
+    
+    Command * c = [[Command alloc] init];
+    [c initWithMotorName:motorName
+                   angle:motorAngle
+               direction:motorDirection];
+    
+    [commandsArray addObject:c];
+    
+    [_commandsTable reloadData];
 }
 
 -(NSInteger)    tableView:(UITableView *)tableView
@@ -98,7 +101,7 @@
     NSMutableString * rightText = [NSMutableString stringWithString:[c getDirection]];
     
     [rightText appendString:@" "];
-    [rightText appendString:[NSString stringWithFormat:@"%ld ", (long)[c getAngle]]];
+    [rightText appendString:[NSString stringWithFormat:@"%@ ", [c getAngle]]];
     [rightText appendString:@" degrees"];
     
     cell.detailTextLabel.text = rightText;
@@ -141,26 +144,28 @@
 - (NSInteger)pickerView:(UIPickerView *)pickerView
 numberOfRowsInComponent:(NSInteger)component
 {
-    if (pickerView == _motorNamePicker)
+    if (component == 0)
     {
         return [motorNamePickerArray count];
     }
     
-    if (pickerView == _motorAnglePicker)
+    if (component == 1)
+    {
+        return [directionPickerArray count];
+    }
+    
+    if (component == 2)
     {
         return [anglePickerArray count];
     }
     
-    if (pickerView == _motorDirectionPicker)
-    {
-        return [directionPickerArray count];
-    }
+    
     return 0;
 }
 
 - (NSInteger)numberOfComponentsInPickerView:(UIPickerView *)pickerView
 {
-    return 3;//3 components - name, angle, and direction
+    return 3; //3 components - name, angle, and direction
 }
 
 - (NSString *) pickerView:(UIPickerView *)pickerView
@@ -171,17 +176,59 @@ numberOfRowsInComponent:(NSInteger)component
     {
         return [motorNamePickerArray objectAtIndex:row];
     }
+    
     if (component == 1)
     {
-        return [directionPickerArray objectAtIndex:row];
+        return [NSString stringWithFormat:@"%@",
+                [directionPickerArray objectAtIndex:row]];
     }
-        
-    return [NSString stringWithFormat:@"%@",[anglePickerArray objectAtIndex:row]];
+    
+    if (component == 2)
+    {
+        return [NSString stringWithFormat:@"%@",
+                [anglePickerArray objectAtIndex:row]];
+    }
+    
+    return @"ERROR";
 }
+
+- (void) pickerView: (UIPickerView *)pickerView
+       didSelectRow: (NSInteger)row
+        inComponent: (NSInteger)component
+{
+    if (component == 0)
+    {
+        [directionPickerArray removeAllObjects];
+        switch (row)
+        {
+            case 0:
+                //elbow values
+                [directionPickerArray addObjectsFromArray:[NSArray   arrayWithObjects:@"FORWARD", @"BACK", @"STOP", nil]];
+                break;
+                
+            case 1:
+                //hand values
+                [directionPickerArray addObjectsFromArray:[NSArray arrayWithObjects:@"OPEN", @"CLOSE", @"STOP", nil]];
+                break;
+                
+            case 2:
+                //rotation values
+                [directionPickerArray addObjectsFromArray:[NSArray arrayWithObjects:@"LEFT", @"RIGHT", @"STOP", nil]];
+                break;
+                
+            case 3:
+                //shoulder values
+                [directionPickerArray addObjectsFromArray:[NSArray arrayWithObjects:@"UP", @"DOWN", @"STOP", nil]];
+                break;
+        }
+    }
+    
+    [pickerView reloadComponent:1];
+}
+
 - (void)didReceiveMemoryWarning {
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
-
 
 @end

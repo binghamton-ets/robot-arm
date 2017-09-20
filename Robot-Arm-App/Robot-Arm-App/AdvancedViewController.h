@@ -9,13 +9,15 @@
 #import <UIKit/UIKit.h>
 #import "Command.h"
 
-@interface AdvancedViewController : UIViewController <UITableViewDelegate, UITableViewDataSource, UIPickerViewDelegate, UIPickerViewDataSource>
+@interface AdvancedViewController : UIViewController <UITableViewDelegate,
+    UITableViewDataSource,
+    UIPickerViewDelegate,
+    UIPickerViewDataSource>
 
 @property (weak, nonatomic) IBOutlet UITableView *commandsTable;
 @property (weak, nonatomic) IBOutlet UIButton *LitButton;
-@property (weak, nonatomic) IBOutlet UIPickerView *motorNamePicker;
-@property (weak, nonatomic) IBOutlet UIPickerView *motorDirectionPicker;
-@property (weak, nonatomic) IBOutlet UIPickerView *motorAnglePicker;
+@property (weak, nonatomic) IBOutlet UIPickerView *commandPicker;
+@property (weak, nonatomic) IBOutlet UIButton *addCommandButton;
 
 @end
 

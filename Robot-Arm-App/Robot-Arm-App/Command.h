@@ -10,14 +10,18 @@
 @interface Command : NSObject
 
 @property (nonatomic) NSString* motorName;
-@property (nonatomic) NSInteger angle;
+@property (nonatomic) NSNumber* angle;
 @property (nonatomic) NSString* direction;
 
 - (void) setMotorName:(NSString *)motorName;
-- (void) setAngle:(NSInteger)angle;
+- (void) setAngle:(NSNumber*)angle;
 - (void) setMoveDirection:(NSString *)direction;
 
 - (NSString*) getMotorName;
-- (NSInteger) getAngle;
+- (NSNumber*) getAngle;
 - (NSString*) getDirection;
+
+- (void) initWithMotorName: (NSString*) name
+                     angle: (NSNumber*) ang
+                 direction: (NSString*) dir;
 @end
