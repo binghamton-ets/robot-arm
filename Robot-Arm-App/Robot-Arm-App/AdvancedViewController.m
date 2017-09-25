@@ -30,18 +30,18 @@
     self.commandPicker.dataSource = self;
     self.commandPicker.delegate = self;
     
-    _commandsTable.layer.borderColor = [UIColor brownColor].CGColor;
-    _commandsTable.layer.borderWidth = 2.5f;
-    
+    //populate arrays for the pickerview
     commandsArray = [[NSMutableArray alloc] init];
     motorNamePickerArray = [[NSMutableArray alloc] initWithArray:[NSArray arrayWithObjects:@"Elbow", @"Hand", @"Rotation", @"Shoulder", nil]];
     directionPickerArray = [[NSMutableArray alloc] initWithArray:[NSArray   arrayWithObjects:@"FORWARD", @"BACK", @"STOP", nil]];
     anglePickerArray = [[NSMutableArray alloc] init];
     
+    //add commands to button
     [_LitButton addTarget:self action:@selector(litButtonAction) forControlEvents:UIControlEventTouchDown];
     
     [_addCommandButton addTarget:self action:@selector(addCommandButtonAction) forControlEvents:UIControlEventTouchDown];
     
+    //populate angle array with degees from 1 - 180
     for (NSInteger i = 1; i <= 180; i++)
     {
         [anglePickerArray addObject:[NSNumber numberWithInteger:i]];
@@ -60,22 +60,30 @@
 
 - (void) addCommandButtonAction
 {
+    //when user adds a command, which consists of motorname, angle,and direction, add to the uitableview
+    
+    //get motor name from motorname array
     NSInteger row = [_commandPicker selectedRowInComponent:0];
     NSString * motorName = [motorNamePickerArray objectAtIndex:row];
     
+    //get direction from direcion array
     row = [_commandPicker selectedRowInComponent:1];
     NSString * motorDirection = [directionPickerArray objectAtIndex:row];
     
+    //get angle from angle array
     row = [_commandPicker selectedRowInComponent:2];
     NSNumber * motorAngle = [anglePickerArray objectAtIndex:row];
     
+    //create command with this information
     Command * c = [[Command alloc] init];
     [c initWithMotorName:motorName
                    angle:motorAngle
                direction:motorDirection];
     
+    //add command to array
     [commandsArray addObject:c];
     
+    //update table
     [_commandsTable reloadData];
 }
 
@@ -88,17 +96,20 @@
 - (UITableViewCell *) tableView:(UITableView *)tableView
           cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    //create cells for store items
+    //create cells for table
     static NSString *simpleTableIdentifier = @"SimpleTableItem";
     UITableViewCell *cell;
     Command * c = [commandsArray objectAtIndex:indexPath.row];
+    
     if (cell == nil)
     {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:simpleTableIdentifier];
     }
     
+    //populate cells with "<motorname> <direction> <angle> degrees"
     cell.textLabel.text = [c getMotorName];
-    NSMutableString * rightText = [NSMutableString stringWithString:[c getDirection]];
+    NSMutableString * rightText =
+        [NSMutableString stringWithString:[c getDirection]];
     
     [rightText appendString:@" "];
     [rightText appendString:[NSString stringWithFormat:@"%@ ", [c getAngle]]];
@@ -126,6 +137,7 @@
                                 actionWithTitle:@"Delete"
                                 style:UIAlertActionStyleDefault
                                 handler:^(UIAlertAction * action) {
+                                    //remove ovject in the array and table
                                     [commandsArray removeObjectAtIndex:indexPath.row];
                                     [_commandsTable deleteRowsAtIndexPaths:[NSArray arrayWithObject:indexPath] withRowAnimation:UITableViewRowAnimationFade];
                                 }];
@@ -198,6 +210,8 @@ numberOfRowsInComponent:(NSInteger)component
 {
     if (component == 0)
     {
+        //change the value of the direction component based on what motor is selected
+        //ex - if elbow is selected, then the arm can go forward and back, but not upand down
         [directionPickerArray removeAllObjects];
         switch (row)
         {

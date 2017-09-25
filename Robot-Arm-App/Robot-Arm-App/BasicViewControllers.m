@@ -36,72 +36,68 @@
     [_ClawCloseButton addTarget:self action:@selector(clawStop) forControlEvents:UIControlEventTouchUpInside];
 }
 
-//UP
+// UP
 - (void) armUpButtonAction
 {
     [self setStatus:@"ARM MOVING UP"];
     [self sendMessageToMotor:@"SHOULDER" direction:@"UP"];
 }
-
--(void) armBaseStop
-{
-    [self setStatus:@"IDLE"];
-        [self sendMessageToMotor:@"SHOULDER" direction:@"STOP"];
-}
-//DOWN
+// DOWN
 - (void) armDownButtonAction
 {
     [self setStatus:@"ARM MOVING DOWN"];
         [self sendMessageToMotor:@"SHOULDER" direction:@"DOWN"];
 }
-//LEFT
+// UP/DOWN stop
+-(void) armBaseStop
+{
+    [self setStatus:@"IDLE"];
+    [self sendMessageToMotor:@"SHOULDER" direction:@"STOP"];
+}
+
+// LEFT
 - (void) armLeftButtonAction
 {
     [self setStatus:@"ARM MOVING LEFT"];
         [self sendMessageToMotor:@"ROTATION" direction:@"LEFT"];
 }
-
--(void) armShoulderStop
-{
-    [self setStatus:@"IDLE"];
-        [self sendMessageToMotor:@"ROTATION" direction:@"STOP"];
-}
-//RIGHT
+// RIGHT
 - (void) armRightButtonAction
 {
     [self setStatus:@"ARM MOVING RIGHT"];
         [self sendMessageToMotor:@"ROTATION" direction:@"RIGHT"];
 }
-//FORWARD
+// LEFT/RIGHT STOP
+-(void) armShoulderStop
+{
+    [self setStatus:@"IDLE"];
+    [self sendMessageToMotor:@"ROTATION" direction:@"STOP"];
+}
+
+// FORWARD
 - (void) armForwardButtonAction
 {
     [self setStatus:@"ARM MOVING FORWARD"];
         [self sendMessageToMotor:@"ELBOW" direction:@"FORWARD"];
 }
-
--(void) armElbowStop
-{
-    [self setStatus:@"IDLE"];
-        [self sendMessageToMotor:@"ELBOW" direction:@"STOP"];
-}
-//BACK
+// BACK
 - (void) armBackButtonAction
 {
     [self setStatus:@"ARM MOVING BACK"];
         [self sendMessageToMotor:@"ELBOW" direction:@"BACK"];
 }
+// FORWARD/BACK STOP
+-(void) armElbowStop
+{
+    [self setStatus:@"IDLE"];
+    [self sendMessageToMotor:@"ELBOW" direction:@"STOP"];
+}
 
-//OPEN
+// OPEN
 - (void) clawOpenButtonAction
 {
     [self setStatus:@"CLOW OPENING"];
         [self sendMessageToMotor:@"HAND" direction:@"OPEN"];
-}
-
--(void) clawStop
-{
-    [self setStatus:@"IDLE"];
-        [self sendMessageToMotor:@"HAND" direction:@"STOP"];
 }
 //CLOSE
 - (void) clawCloseButtonAction
@@ -109,11 +105,18 @@
     [self setStatus:@"CLAW CLOSING"];
         [self sendMessageToMotor:@"HAND" direction:@"CLOSE"];
 }
+// OPEN/CLOSE STOP
+-(void) clawStop
+{
+    [self setStatus:@"IDLE"];
+    [self sendMessageToMotor:@"HAND" direction:@"STOP"];
+}
 
 
 - (void) sendMessageToMotor: (NSString*) motorName
                   direction: (NSString*) direction
 {
+    //send a JSON message with the command
     NSError *error;
     NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
     NSURLSession *session = [NSURLSession sessionWithConfiguration:configuration
