@@ -118,38 +118,41 @@
 {
     //send a JSON message with the command
     NSError *error;
-    NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
-    NSURLSession *session = [NSURLSession sessionWithConfiguration:configuration
-                                                          delegate:self
-                                                     delegateQueue:nil];
-    NSURL *url = [NSURL URLWithString:@"UNKNOWN"];
-    
-    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url
-                                                           cachePolicy:NSURLRequestUseProtocolCachePolicy
-                                                       timeoutInterval:60.0];
-    
-    [request addValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-    [request addValue:@"application/json" forHTTPHeaderField:@"Accept"];
-    
+    NSString *post = [NSString stringWithFormat:@"motorName=%@&direction=%@",motorName,direction];
+    NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
+    NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
+    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+    [request setURL:[NSURL URLWithString:@"http://149.125.62.244"]];
     [request setHTTPMethod:@"POST"];
-    NSArray *objects=[[NSArray alloc]initWithObjects:motorName, direction, nil];
-    
-    NSArray *keys=[[NSArray alloc]initWithObjects:@"motorName", @"direction",nil];
-    NSDictionary *dict=[NSDictionary dictionaryWithObjects:objects forKeys:keys];
-    
-    NSData *postData = [NSJSONSerialization dataWithJSONObject:dict
-                                                       options:0
-                                                         error:&error];//[msg dataUsingEncoding:NSUTF8StringEncoding];
+    [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
+    [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
     [request setHTTPBody:postData];
-    
-    NSURLSessionDataTask *postDataTask =
-    [session dataTaskWithRequest:request
-               completionHandler:^(
-                                   NSData *data, NSURLResponse *response, NSError *error
-                                   )
-    {}];
+    NSURLConnection *conn = [[NSURLConnection alloc] initWithRequest:request delegate:self];
+    if(conn)
+    {
+        NSLog(@"Connection Successful");
+    } else
+    {
+        NSLog(@"Connection could not be made");
+    }
 }
 
+// This method is used to receive the data which we get using post method.
+- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData*)data
+{
+    NSLog(@"RECEIVEDDATA");
+}
+// This method receives the error report in case of connection is not made to server.
+- (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
+{
+    NSLog(@" error => %@ ", [error localizedDescription] );
+    NSLog(@"RECEIVEDDATA FAILED");
+}
+// This method is used to process the data after connection has made successfully.
+- (void)connectionDidFinishLoading:(NSURLConnection *)connection
+{
+    NSLog(@"PROCESSDATA");
+}
 - (void) setStatus: (NSString*) str
 {
     _statusLabel.text = str;

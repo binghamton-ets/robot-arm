@@ -10,6 +10,8 @@
 
 @interface AdvancedViewController ()
 {
+    NSNetServiceBrowser *browser;
+    
     NSMutableArray * commandsArray;
     
     NSMutableArray * motorNamePickerArray;
@@ -46,6 +48,9 @@
     {
         [anglePickerArray addObject:[NSNumber numberWithInteger:i]];
     }
+    
+    browser = [[NSNetServiceBrowser alloc] init];
+    browser.delegate = self;
 }
 
 - (void) viewWillAppear: (BOOL)animated
@@ -53,10 +58,61 @@
     [_commandsTable reloadData];
 }
 
+
+
+
+
+- (void) netServiceBrowserWillSearch: (NSNetServiceBrowser *)browser
+{
+    NSLog(@"WillSearch");
+    //TODO make iphone unusable while search begins
+}
+
+- (void) netServiceBrowserDidStopSearch:(NSNetServiceBrowser *)browser
+{
+    NSLog(@"didStopSearch");
+    //TODO (maybe) do some after-search cleanup
+}
+- (void) netServiceBrowser:(NSNetServiceBrowser *)browser
+              didNotSearch:(NSDictionary<NSString *,NSNumber *> *)errorDict
+{
+    NSLog(@"didNotSearch");
+    NSLog(@"%@", [errorDict allKeys]);
+    NSLog(@"%@", [errorDict allValues]);
+}
+
+- (void) netServiceBrowser:(NSNetServiceBrowser *)browser
+            didFindService:(NSNetService *)service
+                moreComing:(BOOL)moreComing
+{
+    if (moreComing)
+    {
+        //if this parameter is YES , delay updatig any user interface elements until the method is called with a morecoming parameter of NO
+        NSLog(@"done");
+    }
+    NSLog(@"didFindService: %@\t%@", [service name], [service hostName]);
+}
+
+- (void) netServiceBrowser:(NSNetServiceBrowser *)browser
+          didRemoveService:(NSNetService *)service
+                moreComing:(BOOL)moreComing
+{
+    if (moreComing)
+    {
+        //if this parameter is YES , delay updatig any user interface elements until the method is called with a morecoming parameter of NO
+        NSLog(@"done");
+    }
+    NSLog(@"didRemoveService: %@t%@", [service name], [service hostName]);
+}
+
 - (void) litButtonAction
 {
+    //try indomain = @"" if local doesn't work
+    [browser searchForServicesOfType:@"_ssh._tcp." inDomain:@"local."];
 //    [_commandsTable reloadData];
 }
+
+
 
 - (void) addCommandButtonAction
 {
