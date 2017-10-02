@@ -14,6 +14,10 @@
 #define ERROR_UNKNOWN_CMD 1
 #define ERROR_UNKNOWN_MOTOR 2
 
+#define DEFAULT_SPEED 3
+#define MIN_SPEED 1
+#define MAX_SPEED 20
+
 // Custom Type Definitions
 typedef struct _range {
   int min;
@@ -39,6 +43,7 @@ MotorRanges motorRanges = {
   .elbow = { .min = 0, .max = 180 },
   .hand = { .min = 0, .max = 180 },
 };
+int speed = DEFAULT_SPEED;
 
 void setup() {
   // Attach the servos to the I/O port
@@ -46,6 +51,9 @@ void setup() {
 
   // Open serial communications with the host
   Serial.begin(9600);
+
+  // Communicate that the device is ready
+  reportSuccess();
 }
 
 void loop() {
@@ -151,6 +159,8 @@ bool executeInstruction(int argc, char ** argv) {
     return setMinAngle(argc, argv);
   } else if (strcmp(argv[0], "GET_ANGLE") == 0) {
     return getAngle(argc, argv);
+  } else if (strcmp(argv[0], "SET_SPEED") == 0) {
+    return setSpeed(argc, argv);
   }
 
   reportError(ERROR_UNKNOWN_CMD, "Unknown command");
@@ -311,6 +321,16 @@ bool setMinAngle(int argc, char ** argv) {
   return false;
 }
 
+bool setSpeed(int argc, char ** argv) {
+  if (argc != 2) {
+    reportError(ERROR_MALFORMED, "SET_SPEED expected 1 arguments");
+    return false;
+  }
+
+  speed = atoi(argv[1]);
+  return true;
+}
+
 bool getAngle(int argc, char ** argv) {
   if (argc != 2) {
     reportError(ERROR_MALFORMED, "GET_ANGLE expected 1 argument");
@@ -350,7 +370,7 @@ bool sweepMotorTo(Servo motor, int targetAngle) {
   int stepAmount = (targetAngle > initialAngle) ? 1 : -1;
   for (int i = 0; i < abs(targetAngle - initialAngle); i++) {
     motor.write(initialAngle + (i * stepAmount));
-    delay(5);
+    delay(constrain(speed, MIN_SPEED, MAX_SPEED));
   }
   return true;
 }
