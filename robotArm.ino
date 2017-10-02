@@ -17,6 +17,7 @@
 #define DEFAULT_SPEED 3
 #define MIN_SPEED 1
 #define MAX_SPEED 20
+#define SIZE_OF_INT sizeof(int)
 
 // Custom Type Definitions
 typedef struct _range {
@@ -373,4 +374,126 @@ bool sweepMotorTo(Servo motor, int targetAngle) {
     delay(constrain(speed, MIN_SPEED, MAX_SPEED));
   }
   return true;
+}
+
+
+bool saveRotationMin()
+{
+  //save in EEPROM 0
+  int addr = 0;
+  int value = motorRanges.rotation.min & 0xFF;
+  EEPROM.write(addr, value);
+}
+
+bool saveRotationMax()
+{
+  //save in EEPROM 1
+  int addr = SIZE_OF_INT;
+  int value = motorRanges.rotation.max & 0xFF;
+  EEPROM.write(addr, value);
+}
+
+bool saveShoulderMin()
+{
+  //save in EEPROM 2
+  int addr = 2*SIZE_OF_INT;
+  int value = motorRanges.shoulder.min & 0xFF;
+  EEPROM.write(addr, value);
+}
+
+bool saveShoulderMax()
+{
+  //save in EEPROM 3
+  int addr = 3*SIZE_OF_INT;
+  int value = motorRanges.shoulder.max & 0xFF;
+  EEPROM.write(addr, value);
+}
+
+bool saveElbowMin()
+{
+  //save in EEPROM 4
+  int addr = 4*SIZE_OF_INT;
+  int value = motorRanges.elbow.min & 0xFF;
+  EEPROM.write(addr, value);
+}
+
+bool saveElbowMax()
+{
+  //save in EEPROM 5
+  int addr = 5*SIZE_OF_INT;
+  int value = motorRanges.elbow.max & 0xFF;
+  EEPROM.write(addr, value);
+}
+
+bool saveHandMin()
+{
+  //save in EEPROM 6
+  int addr = 6*SIZE_OF_INT;
+  int value = motorRanges.hand.min & 0xFF;
+  EEPROM.write(addr, value);
+}
+
+bool saveHandMax()
+{
+  //save in EEPROM 7
+  int addr = 7*SIZE_OF_INT;
+  int value = motorRanges.hand.max & 0xFF;
+  EEPROM.write(addr, value);
+}
+
+/*    get values    */
+bool getRotationMin()
+{
+  //get in EEPROM 0
+  int addr = 0;
+  int value = EEPROM.read(addr);
+}
+
+bool getRotationMax()
+{
+  //get in EEPROM 1
+  int addr = SIZE_OF_INT;
+  int value = EEPROM.read(addr);
+}
+
+bool getShoulderMin()
+{
+  //get in EEPROM 2
+  int addr = 2 * SIZE_OF_INT;
+  int value = EEPROM.read(addr);
+}
+
+bool getShoulderMax()
+{
+  //get in EEPROM 3
+  int addr = 3 * SIZE_OF_INT;
+  int value = EEPROM.read(addr);
+}
+
+bool getElbowMin()
+{
+  //get in EEPROM 4
+  int addr = 4 * SIZE_OF_INT;
+  int value = EEPROM.read(addr);
+}
+
+bool getElbowMax()
+{
+  //get in EEPROM 5
+  int addr = 5 * SIZE_OF_INT;
+  int value = EEPROM.read(addr);
+}
+
+bool getHandMin()
+{
+  //get in EEPROM 6
+  int addr = 6 * SIZE_OF_INT;
+  int value = EEPROM.read(addr);
+}
+
+bool getHandMax()
+{
+  //get in EEPROM 7
+  int addr = 7 * SIZE_OF_INT;
+  int value = EEPROM.read(addr);
 }
