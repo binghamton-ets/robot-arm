@@ -9,6 +9,11 @@
 #import "BasicViewControllers.h"
 
 @interface BasicViewControllers ()
+{
+    NSNetService * robotService;
+    NSNetServiceBrowser *browser;
+    BOOL foundPiServer;
+}
 
 @end
 
@@ -17,6 +22,7 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    foundPiServer = false;
     //set actions for when buttons are pressed and released
     [_ArmUpButton addTarget:self action:@selector(armUpButtonAction) forControlEvents:UIControlEventTouchDown];
     [_ArmUpButton addTarget:self action:@selector(armBaseStop) forControlEvents:UIControlEventTouchUpInside];
@@ -34,6 +40,13 @@
     [_ClawOpenButton addTarget:self action:@selector(clawStop) forControlEvents:UIControlEventTouchUpInside];
     [_ClawCloseButton addTarget:self action:@selector(clawCloseButtonAction) forControlEvents:UIControlEventTouchDown];
     [_ClawCloseButton addTarget:self action:@selector(clawStop) forControlEvents:UIControlEventTouchUpInside];
+    
+    browser = [[NSNetServiceBrowser alloc] init];
+    browser.delegate = self;
+    [browser searchForServicesOfType:@"_ssh._tcp."
+                            inDomain:@"local."];
+    [robotService resolveWithTimeout:5];
+    NSLog(@"%@", [robotService addresses]);
 }
 
 // UP
@@ -96,7 +109,7 @@
 // OPEN
 - (void) clawOpenButtonAction
 {
-    [self setStatus:@"CLOW OPENING"];
+    [self setStatus:@"CLAW OPENING"];
         [self sendMessageToMotor:@"HAND" direction:@"OPEN"];
 }
 //CLOSE
@@ -116,46 +129,78 @@
 - (void) sendMessageToMotor: (NSString*) motorName
                   direction: (NSString*) direction
 {
-    //send a JSON message with the command
-    NSError *error;
-    NSString *post = [NSString stringWithFormat:@"motorName=%@&direction=%@",motorName,direction];
-    NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
-    NSString *postLength = [NSString stringWithFormat:@"%lu", (unsigned long)[postData length]];
-    NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
-    [request setURL:[NSURL URLWithString:@"http://149.125.62.244"]];
-    [request setHTTPMethod:@"POST"];
-    [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
-    [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
-    [request setHTTPBody:postData];
-    NSURLConnection *conn = [[NSURLConnection alloc] initWithRequest:request delegate:self];
-    if(conn)
+    //TODO send msg to server
+}
+
+-(void) setStatus: (NSString*) statusStr
+{
+    [_statusLabel setText: statusStr];
+}
+
+- (void) netServiceBrowserWillSearch: (NSNetServiceBrowser *)browser
+{
+    NSLog(@"WillSearch");
+    //method notifies the delegate that a search is commencing
+    //TODO make buttons unusable while search begins
+}
+
+- (void) netServiceBrowserDidStopSearch:(NSNetServiceBrowser *)browser
+{
+    NSLog(@"didStopSearch - done searching");
+    //you can perform any necessary cleanup.
+    //TODO (maybe) do some after-search cleanup, and make iphone usable
+}
+- (void) netServiceBrowser:(NSNetServiceBrowser *)browser
+              didNotSearch:(NSDictionary<NSString *,NSNumber *> *)errorDict
+{
+    //the search failed for some reason
+    NSLog(@"didNotSearch");
+    NSLog(@"%@", [errorDict allKeys]);
+    NSLog(@"%@", [errorDict allValues]);
+}
+
+- (void) netServiceBrowser:(NSNetServiceBrowser *)browser
+            didFindService:(NSNetService *)service
+                moreComing:(BOOL)moreComing
+{
+    //service has become available
+    if (moreComing)
     {
-        NSLog(@"Connection Successful");
-    } else
+        //if this parameter is YES , delay updatig any user interface elements until the method is called with a morecoming parameter of NO
+        
+    }
+    
+    if ([[service name] compare:@"RobotArm Access Point"])
     {
-        NSLog(@"Connection could not be made");
+        NSLog(@"found [RobotArm Access Point] with hostname %@", [service hostName]);
+        robotService = service;
+        foundPiServer = true;
     }
 }
 
-// This method is used to receive the data which we get using post method.
-- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData*)data
+- (void) netServiceBrowser:(NSNetServiceBrowser *)browser
+          didRemoveService:(NSNetService *)service
+                moreComing:(BOOL)moreComing
 {
-    NSLog(@"RECEIVEDDATA");
+    //service has shutdown
+    if (moreComing)
+    {
+        NSLog(@"\t done searching");
+    }
+    NSLog(@"didRemoveService: %@t%@", [service name], [service hostName]);
 }
-// This method receives the error report in case of connection is not made to server.
-- (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error
+
+-(NSString* )IPAddressesFromData:(NSNetService *)service
 {
-    NSLog(@" error => %@ ", [error localizedDescription] );
-    NSLog(@"RECEIVEDDATA FAILED");
-}
-// This method is used to process the data after connection has made successfully.
-- (void)connectionDidFinishLoading:(NSURLConnection *)connection
-{
-    NSLog(@"PROCESSDATA");
-}
-- (void) setStatus: (NSString*) str
-{
-    _statusLabel.text = str;
+    for (NSData *address in [service addresses])
+    {
+        struct sockaddr_in *socketAddress = (struct sockaddr_in *) [address bytes];
+        //NSLog(@"Service name: %@ , ip: %s , port %i", [service name], inet_ntoa(socketAddress->sin_addr), [service port]);
+        NSString *retString = [NSString stringWithFormat:@"%s",
+                               inet_ntoa(socketAddress->sin_addr)];
+        return retString;
+    }
+    return @"Unknown";
 }
 
 - (void)didReceiveMemoryWarning

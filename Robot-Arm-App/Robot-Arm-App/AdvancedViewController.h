@@ -12,8 +12,7 @@
 @interface AdvancedViewController : UIViewController <UITableViewDelegate,
     UITableViewDataSource,
     UIPickerViewDelegate,
-    UIPickerViewDataSource,
-    NSNetServiceBrowserDelegate>
+    UIPickerViewDataSource>
 
 @property (weak, nonatomic) IBOutlet UITableView *commandsTable;
 @property (weak, nonatomic) IBOutlet UIButton *LitButton;

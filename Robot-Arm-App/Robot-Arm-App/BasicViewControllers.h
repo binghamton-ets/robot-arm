@@ -7,8 +7,8 @@
 //
 
 #import <UIKit/UIKit.h>
-
-@interface BasicViewControllers : UIViewController <NSURLSessionDelegate>
+#import <arpa/inet.h>
+@interface BasicViewControllers : UIViewController <NSNetServiceBrowserDelegate>
 
 @property (strong, nonatomic) IBOutlet UIButton * ArmUpButton;
 @property (strong, nonatomic) IBOutlet UIButton * ArmDownButton;
